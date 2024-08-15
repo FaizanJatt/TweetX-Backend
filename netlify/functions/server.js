@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-console.log(process.env.MONGODB_URI);
+console.log("HERE", process.env.MONGODB_URI);
 const connectWithRetry = () => {
   mongoose
     .connect(process.env.MONGODB_URI)
