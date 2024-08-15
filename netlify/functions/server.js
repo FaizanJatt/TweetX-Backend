@@ -14,21 +14,6 @@ const jwtSecret = process.env.JWT_SECRET;
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-// console.log("HERE", process.env.MONGODB_URI);
-// const connectWithRetry = () => {
-//   mongoose
-//     .connect(process.env.MONGODB_URI)
-//     .then(() => {
-//       console.log("Connected to MongoDB");
-//     })
-//     .catch((err) => {
-//       console.log("Failed to connect to MongoDB, retrying...", err);
-//       setTimeout(connectWithRetry, 5000); // Retry after 5 seconds
-//     });
-// };
-
-// connectWithRetry();
 mongoose.connect(process.env.MONGODB_URI);
 
 // Check connection
@@ -113,20 +98,20 @@ app.post("/follow/:id", async (req, res) => {
   }
 });
 
-app.get("/user/:id/followers", async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).populate(
-      "followersList",
-      "name email"
-    );
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.json(user.followersList);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// app.get("/user/:id/followers", async (req, res) => {
+//   try {
+//     const user = await User.findById(req.params.id).populate(
+//       "followersList",
+//       "name email"
+//     );
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+//     res.json(user.followersList);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
 
 app.get("/user/:id/posts", async (req, res) => {
   try {
@@ -211,42 +196,42 @@ app.get("/userStatus", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-app.get("/userFollows", async (req, res) => {
-  try {
-    const { q } = req.query; // Assuming currentUserId is passed as a query parameter
-    const currentUserId = q;
-    const userFollowing = await User.findById(currentUserId);
-    const users = await User.find(
-      {},
-      "name followingCount followersList user._id  followersCount followingList"
-    );
-    // console.log(userFollowing.followingList);
-    // return;
-    const result = users
-      .filter(
-        (user) =>
-          user._id.toString() !== q &&
-          userFollowing.followingList.includes(user._id.toString())
-      ) // Filtering out the current user && all users that are not being followed
-      .map((user) => {
-        const isFollowing = user.followersList.includes(currentUserId);
-        return {
-          _id: user._id,
-          name: user.name,
-          followingCount: user.followingCount,
-          isFollowing: isFollowing,
-          profileImageUrl: user.profileImageUrl,
-          followersList: user.followersList,
-          followersCount: user.followersCount,
-          followingList: user.followingList,
-        };
-      });
+// app.get("/userFollows", async (req, res) => {
+//   try {
+//     const { q } = req.query; // Assuming currentUserId is passed as a query parameter
+//     const currentUserId = q;
+//     const userFollowing = await User.findById(currentUserId);
+//     const users = await User.find(
+//       {},
+//       "name followingCount followersList user._id  followersCount followingList"
+//     );
+//     // console.log(userFollowing.followingList);
+//     // return;
+//     const result = users
+//       .filter(
+//         (user) =>
+//           user._id.toString() !== q &&
+//           userFollowing.followingList.includes(user._id.toString())
+//       ) // Filtering out the current user && all users that are not being followed
+//       .map((user) => {
+//         const isFollowing = user.followersList.includes(currentUserId);
+//         return {
+//           _id: user._id,
+//           name: user.name,
+//           followingCount: user.followingCount,
+//           isFollowing: isFollowing,
+//           profileImageUrl: user.profileImageUrl,
+//           followersList: user.followersList,
+//           followersCount: user.followersCount,
+//           followingList: user.followingList,
+//         };
+//       });
 
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+//     res.json(result);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
 app.get("/user/:id/feed", async (req, res) => {
   try {
     // Step 1: Get the current user's ID
