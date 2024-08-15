@@ -348,6 +348,10 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.get("/", async (req, res) => {
+  res.send("Server is running");
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
