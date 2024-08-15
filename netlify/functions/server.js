@@ -11,7 +11,14 @@ const saltRounds = 10;
 const jwtSecret = process.env.JWT_SECRET;
 
 // Middleware
-app.use(cors());
+
+const corsOptions = {
+  origin: "http://localhost:5173", // The frontend origin you want to allow
+  optionsSuccessStatus: 200, // For legacy browser support
+};
+
+app.use(cors(corsOptions));
+// app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
