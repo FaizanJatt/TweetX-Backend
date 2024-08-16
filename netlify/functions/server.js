@@ -46,8 +46,7 @@ const Post = mongoose.model("Post", PostSchema);
 // Routes
 
 app.post("/follow/:id", async (req, res) => {
-  const { userId } = req.body; // Assuming the request body contains the ID of the user initiating the follow
-
+  const { userId } = req.body;
   try {
     const userToFollow = await User.findById(req.params.id);
     const userFollowing = await User.findById(userId);
@@ -98,27 +97,12 @@ app.post("/follow/:id", async (req, res) => {
   }
 });
 
-// app.get("/user/:id/followers", async (req, res) => {
-//   try {
-//     const user = await User.findById(req.params.id).populate(
-//       "followersList",
-//       "name email"
-//     );
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-//     res.json(user.followersList);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
-
 app.get("/user/:id/posts", async (req, res) => {
   try {
     const user = await User.findById(req.params.id).populate({
       path: "postsList",
       populate: {
-        path: "user", // Assuming "user" is the field in the posts schema that references the user
+        path: "user",
         model: "User",
       },
     });
@@ -169,7 +153,7 @@ app.get("/users", async (req, res) => {
 
 app.get("/userStatus", async (req, res) => {
   try {
-    const { q } = req.query; // Assuming currentUserId is passed as a query parameter
+    const { q } = req.query;
     const currentUserId = q;
     const users = await User.find(
       {},
@@ -196,48 +180,13 @@ app.get("/userStatus", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-// app.get("/userFollows", async (req, res) => {
-//   try {
-//     const { q } = req.query; // Assuming currentUserId is passed as a query parameter
-//     const currentUserId = q;
-//     const userFollowing = await User.findById(currentUserId);
-//     const users = await User.find(
-//       {},
-//       "name followingCount followersList user._id  followersCount followingList"
-//     );
-//     // console.log(userFollowing.followingList);
-//     // return;
-//     const result = users
-//       .filter(
-//         (user) =>
-//           user._id.toString() !== q &&
-//           userFollowing.followingList.includes(user._id.toString())
-//       ) // Filtering out the current user && all users that are not being followed
-//       .map((user) => {
-//         const isFollowing = user.followersList.includes(currentUserId);
-//         return {
-//           _id: user._id,
-//           name: user.name,
-//           followingCount: user.followingCount,
-//           isFollowing: isFollowing,
-//           profileImageUrl: user.profileImageUrl,
-//           followersList: user.followersList,
-//           followersCount: user.followersCount,
-//           followingList: user.followingList,
-//         };
-//       });
 
-//     res.json(result);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
 app.get("/user/:id/feed", async (req, res) => {
   try {
-    // Step 1: Get the current user's ID
+    //  Get the current user's ID
     const userId = req.params.id;
 
-    // Step 2: Find the current user and get their following list
+    //  Find the current user and get their following list
     const currentUser = await User.findById(userId);
     if (!currentUser) {
       return res.status(404).json({ message: "User not found" });
@@ -245,15 +194,15 @@ app.get("/user/:id/feed", async (req, res) => {
 
     const followingList = currentUser.followingList;
 
-    // Step 3: Fetch posts from users in the following list, and sort them by createdAt timestamp
+    //  Fetch posts from users in the following list, and sort them by createdAt field
     const feedPosts = await Post.find({
       user: { $in: followingList },
     })
-      .populate("user", "name profileImageUrl") // Populate user details if needed
+      .populate("user", "name profileImageUrl")
       .sort({ createdAt: -1 }) // Sort posts by the timestamp in descending order
       .exec();
 
-    // Step 4: Return the sorted posts as the feed
+    //  Return the sorted posts as the feed
     res.json(feedPosts);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -278,28 +227,23 @@ app.get("/user/:id", async (req, res) => {
 app.post("/posts", async (req, res) => {
   const { userId, content } = req.body;
 
-  // Check if the content is provided and valid
   if (!userId || !content || content.length > 100) {
     return res.status(400).json({ message: "Invalid post data" });
   }
 
   try {
-    // Find the user who is making the post
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Create a new post
     const newPost = new Post({
       user: userId,
       content,
     });
 
-    // Save the post
     const savedPost = await newPost.save();
 
-    // Update the user's post list and count
     user.postsList.push(savedPost._id);
     user.postsCount = user.postsList.length;
 
